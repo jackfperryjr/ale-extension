@@ -1,0 +1,191 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 300px;
+  font-family: Georgia, 'Times New Roman', serif;
+  background: #080E12;
+  color: #E8DCC8;
+}
+
+/* ── Header ── */
+.ale-header {
+  background: #E8A020;
+  padding: 10px 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ale-logo {
+  font-size: 22px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #080E12;
+}
+
+.ale-tagline {
+  font-size: 10px;
+  font-style: italic;
+  color: #080E12;
+  opacity: 0.65;
+}
+
+/* ── URL bar ── */
+.ale-url {
+  padding: 6px 14px;
+  font-size: 10px;
+  font-family: monospace;
+  color: #60707A;
+  border-bottom: 1px solid #1E2830;
+  min-height: 26px;
+  word-break: break-all;
+}
+
+/* ── Score ring ── */
+.ale-score-wrap {
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 16px 10px;
+  gap: 6px;
+}
+
+.ale-ring-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.ale-ring-wrap svg {
+  transform: rotate(-90deg);
+  width: 96px;
+  height: 96px;
+}
+
+.ring-bg {
+  fill: none;
+  stroke: #1E2830;
+  stroke-width: 8;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: #E8A020;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1), stroke 0.3s;
+}
+
+.ale-score-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #E8DCC8;
+}
+
+.ale-score-label { font-size: 13px; font-style: italic; }
+.ale-score-label.real    { color: #00C875; }
+.ale-score-label.mixed   { color: #F0A020; }
+.ale-score-label.skunked { color: #E03050; }
+
+/* ── Pour animation ── */
+.ale-pour {
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 10px;
+  gap: 10px;
+}
+
+.pour-glass {
+  width: 46px;
+  height: 64px;
+  border: 3px solid #E8A020;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  position: relative;
+  overflow: hidden;
+  background: #080E12;
+}
+
+.pour-liquid {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, #3D2000, #E8A020);
+  transition: height 0.08s linear;
+  height: 0%;
+}
+
+.pour-foam {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: #E8DCC8;
+  border-radius: 3px 3px 0 0;
+  opacity: 0;
+  animation: foam-in 0.4s 1.8s forwards;
+}
+
+@keyframes foam-in {
+  to { opacity: 1; }
+}
+
+.pour-label {
+  font-size: 11px;
+  font-style: italic;
+  color: #E8A020;
+}
+
+/* ── Actions ── */
+.ale-actions {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.btn-verify {
+  width: 100%;
+  padding: 9px;
+  background: #E8A020;
+  color: #080E12;
+  border: none;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-verify:hover:not(:disabled) { background: #FFB84A; }
+.btn-verify:disabled { background: #1E2830; color: #3D2800; cursor: not-allowed; }
+
+.btn-brewmaster {
+  width: 100%;
+  padding: 7px;
+  background: transparent;
+  color: #E8A020;
+  border: 1px solid #E8A020;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-brewmaster:hover:not(:disabled) { background: rgba(0,212,200,0.1); }
+.btn-brewmaster:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Status ── */
+.ale-status {
+  padding: 6px 14px 10px;
+  font-size: 10px;
+  font-style: italic;
+  color: #60707A;
+  min-height: 22px;
+  text-align: center;
+  line-height: 1.4;
+}

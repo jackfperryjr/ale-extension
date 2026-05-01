@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ALE</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <header class="ale-header">
+    <span class="ale-logo">ALE</span>
+    <span class="ale-tagline">Authenticity Logic Engine</span>
+  </header>
+
+  <div class="ale-url" id="currentUrl">—</div>
+
+  <!-- Score ring (shown after analysis) -->
+  <div class="ale-score-wrap" id="scoreWrap" style="display:none">
+    <div class="ale-ring-wrap">
+      <svg viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="40"/>
+        <circle class="ring-fill" id="scoreRing" cx="50" cy="50" r="40"/>
+      </svg>
+      <div class="ale-score-value" id="scoreValue">--</div>
+    </div>
+    <div class="ale-score-label" id="scoreLabel">—</div>
+  </div>
+
+  <!-- Pour animation (shown while analyzing) -->
+  <div class="ale-pour" id="pourWrap" style="display:none">
+    <div class="pour-glass">
+      <div class="pour-liquid" id="pourLiquid"></div>
+      <div class="pour-foam"></div>
+    </div>
+    <span class="pour-label">Analyzing…</span>
+  </div>
+
+  <div class="ale-actions">
+    <button id="verifyBtn" class="btn-verify">Verify This Content</button>
+    <button id="brewmasterBtn" class="btn-brewmaster" style="display:none">Request Human Verification</button>
+  </div>
+
+  <div class="ale-status" id="statusMsg"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

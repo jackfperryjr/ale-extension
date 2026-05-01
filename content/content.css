@@ -1,0 +1,286 @@
+#ale-bottle-cap {
+  position: absolute;
+  top: 10px;
+  right: 58px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 9999;
+  transition: transform 0.2s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+}
+
+#ale-img-cap {
+  position: fixed;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  z-index: 2147483647;
+  display: none;
+  transition: transform 0.2s ease, filter 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+}
+
+#ale-bottle-cap:hover, #ale-img-cap:hover { transform: scale(1.15); }
+
+#ale-bottle-cap::after,
+#ale-img-cap::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #080E12;
+  border: 1px solid #2A3840;
+  color: #E8DCC8;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 11px;
+  font-style: italic;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#ale-bottle-cap:hover::after,
+#ale-img-cap:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#ale-bottle-cap.ale-analyzing {
+  animation: ale-spin 1.2s linear infinite;
+}
+
+
+@keyframes ale-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Inline panel ─────────────────────────────────────────────────────────── */
+
+#ale-panel {
+  position: absolute;
+  top: 10px;
+  right: 58px;
+  width: 260px;
+  z-index: 10000;
+  background: #080E12;
+  border: 1px solid #1E2830;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #E8DCC8;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
+  user-select: none;
+}
+
+.alep-header {
+  background: #E8A020;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alep-logo {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #080E12;
+}
+
+.alep-tagline {
+  font-size: 9px;
+  font-style: italic;
+  color: #080E12;
+  opacity: 0.65;
+  flex: 1;
+}
+
+.alep-close {
+  background: none;
+  border: none;
+  color: #080E12;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.alep-close:hover { opacity: 1; }
+
+.alep-url {
+  padding: 5px 12px;
+  font-size: 9px;
+  font-family: monospace;
+  color: #60707A;
+  border-bottom: 1px solid #1E2830;
+  word-break: break-all;
+}
+
+.alep-body {
+  padding: 14px 12px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 110px;
+  justify-content: center;
+}
+
+.alep-idle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-style: italic;
+  color: #60707A;
+  min-height: 80px;
+}
+
+/* Pour animation */
+.alep-pour {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.alep-glass {
+  width: 38px;
+  height: 52px;
+  border: 2px solid #E8A020;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  position: relative;
+  overflow: hidden;
+  background: #080E12;
+}
+
+.alep-liquid {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, #3D2000, #E8A020);
+  transition: height 0.08s linear;
+  height: 0%;
+}
+
+.alep-foam {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: #E8DCC8;
+  border-radius: 2px 2px 0 0;
+  opacity: 0;
+  animation: alep-foam-in 0.4s 1.8s forwards;
+}
+
+@keyframes alep-foam-in { to { opacity: 1; } }
+
+.alep-pour-label {
+  font-size: 10px;
+  font-style: italic;
+  color: #E8A020;
+}
+
+/* Score ring */
+.alep-score {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.alep-ring-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.alep-ring-svg {
+  transform: rotate(-90deg);
+  width: 80px;
+  height: 80px;
+}
+
+.alep-ring-bg {
+  fill: none;
+  stroke: #1E2830;
+  stroke-width: 8;
+}
+
+.alep-ring-fill {
+  fill: none;
+  stroke: #E8A020;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s cubic-bezier(.4, 0, .2, 1), stroke 0.3s;
+}
+
+.alep-score-val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #E8DCC8;
+}
+
+.alep-score-label {
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Actions */
+.alep-actions {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alep-btn-verify {
+  width: 100%;
+  padding: 6px;
+  background: transparent;
+  color: #60707A;
+  border: 1px solid #1E2830;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.alep-btn-verify:hover:not(:disabled) { border-color: #E8A020; color: #E8A020; }
+.alep-btn-verify:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.alep-btn-brewmaster {
+  width: 100%;
+  padding: 7px;
+  background: transparent;
+  color: #E8A020;
+  border: 1px solid #E8A020;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.alep-btn-brewmaster:hover:not(:disabled) { background: rgba(232, 160, 32, 0.12); }
+.alep-btn-brewmaster:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.alep-status {
+  padding: 2px 12px 8px;
+  font-size: 9px;
+  font-style: italic;
+  color: #60707A;
+  text-align: center;
+  line-height: 1.4;
+  min-height: 16px;
+}
