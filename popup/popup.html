@@ -42,6 +42,18 @@
 
   <div class="ale-status" id="statusMsg"></div>
 
+  <div class="ale-auth" id="authSection">
+    <div id="authSignedOut">
+      <button id="signInBtn" class="btn-signin">Sign in with Google</button>
+      <p class="auth-hint">2 free analyses per day</p>
+    </div>
+    <div id="authSignedIn" style="display:none">
+      <span class="auth-email" id="authEmail"></span>
+      <span class="auth-credits" id="authCredits"></span>
+      <button id="signOutBtn" class="btn-signout">Sign out</button>
+    </div>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>
