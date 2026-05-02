@@ -1,22 +1,66 @@
 name: ALE - Extension Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   release:
-    name: Build & Release
+    name: Tag & Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute next version
+        id: version
+        run: |
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
+          if [ -z "$LATEST" ]; then LATEST="v0.0.0"; fi
+          VERSION=${LATEST#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          case "${{ inputs.bump }}" in
+            major) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR+1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH+1)) ;;
+          esac
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          NEW_TAG="v$NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$NEW_TAG"         >> $GITHUB_OUTPUT
+          echo "prev=$LATEST"         >> $GITHUB_OUTPUT
+
+      - name: Update manifest version
+        run: |
+          jq --arg v "${{ steps.version.outputs.version }}" '.version = $v' manifest.json > tmp.json
+          mv tmp.json manifest.json
+
+      - name: Commit & tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "chore: release ${{ steps.version.outputs.tag }}"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin main
+          git push origin ${{ steps.version.outputs.tag }}
 
       - name: Build zip
         run: |
-          zip -r ale-extension-${{ github.ref_name }}.zip . \
+          zip -r ale-extension-${{ steps.version.outputs.tag }}.zip . \
             --exclude ".git/*" \
             --exclude ".github/*" \
             --exclude "docs/*" \
@@ -26,5 +70,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ale-extension-${{ github.ref_name }}.zip
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: ale-extension-${{ steps.version.outputs.tag }}.zip
           generate_release_notes: true
