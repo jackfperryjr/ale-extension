@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALE — Authenticity Logic Engine</title>
+  <meta name="description" content="A Chrome extension that scans videos and images for AI generation and deepfakes — right in your browser." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080E12;
+      --card:    #0D1A22;
+      --border:  #1E2830;
+      --amber:   #E8A020;
+      --gold:    #FFB84A;
+      --muted:   #60707A;
+      --text:    #E8DCC8;
+      --real:    #00C875;
+      --mixed:   #F0A020;
+      --skunked: #E03050;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Georgia, 'Times New Roman', serif;
+      line-height: 1.6;
+    }
+
+    a { color: var(--amber); text-decoration: none; }
+    a:hover { color: var(--gold); }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      color: var(--amber);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .nav-links a { color: var(--muted); transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 90px 24px 70px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 54px);
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 22px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 36px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 13px 32px;
+      background: var(--amber);
+      color: var(--bg);
+      border-radius: 5px;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--gold); color: var(--bg); }
+
+    .btn-secondary {
+      display: inline-block;
+      padding: 13px 24px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 5px;
+      font-family: Georgia, serif;
+      font-size: 13px;
+      margin-left: 12px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: var(--amber); color: var(--text); }
+
+    /* ── Demo pill ── */
+    .demo-pills {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── How it works ── */
+    section { padding: 72px 24px; }
+
+    .section-label {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 12px;
+    }
+
+    section h2 {
+      text-align: center;
+      font-size: clamp(22px, 4vw, 32px);
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .step h3 {
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Features ── */
+    .features-bg { background: var(--card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .feature h3 {
+      font-size: 14px;
+      color: var(--amber);
+      margin-bottom: 6px;
+    }
+
+    .feature p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Score sample ── */
+    .score-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .score-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 28px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .score-val {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .score-tag {
+      font-size: 11px;
+      font-style: italic;
+    }
+
+    /* ── Credits ── */
+    .credits-section { text-align: center; }
+
+    .credits-box {
+      display: inline-block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px 40px;
+      margin-top: 8px;
+    }
+
+    .credits-box .big { font-size: 42px; font-weight: bold; color: var(--amber); }
+    .credits-box .label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .credits-box .sub { font-size: 11px; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 80px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .cta-section h2 {
+      font-size: clamp(22px, 4vw, 36px);
+      margin-bottom: 16px;
+    }
+
+    .cta-section p {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer .foot-logo { font-size: 14px; font-weight: bold; letter-spacing: 3px; color: var(--amber); }
+    footer .foot-links { display: flex; gap: 20px; font-size: 11px; color: var(--muted); }
+    footer .foot-links a { color: var(--muted); transition: color 0.15s; }
+    footer .foot-links a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">ALE</span>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <p class="hero-eyebrow">Authenticity Logic Engine</p>
+  <h1>Know what's real.<br><em>Before you share it.</em></h1>
+  <p>
+    ALE scans videos and images for AI generation and deepfakes — right in your browser,
+    on YouTube, X, TikTok, Facebook, and more.
+  </p>
+  <div>
+    <a class="btn-primary" href="https://github.com/jackfperryjr/ale-extension/releases/latest" target="_blank" rel="noopener">
+      Download Extension
+    </a>
+    <a class="btn-secondary" href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">
+      View on GitHub
+    </a>
+  </div>
+
+  <div class="demo-pills">
+    <div class="pill">
+      <span class="pill-dot" style="background: var(--real)"></span>
+      <span>Pure ALE &mdash; likely genuine</span>
+    </div>
+    <div class="pill">
+      <span class="pill-dot" style="background: var(--mixed)"></span>
+      <span>Mixed Pour &mdash; uncertain</span>
+    </div>
+    <div class="pill">
+      <span class="pill-dot" style="background: var(--skunked)"></span>
+      <span>Skunked &mdash; likely synthetic</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section id="how-it-works">
+  <p class="section-label">How it works</p>
+  <h2>Three steps to the truth</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Install the extension</h3>
+      <p>Add ALE to Chrome in seconds. Sign in with Google to unlock 2 free scans per day.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Browse normally</h3>
+      <p>An ALE bottle cap appears on any video. Hover over images for instant one-click analysis.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>See the score</h3>
+      <p>Get an authenticity score instantly. Flag suspicious content for human review by a Brewmaster.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Score examples ── -->
+<section class="features-bg">
+  <section>
+    <p class="section-label">The score</p>
+    <h2>Instant authenticity ratings</h2>
+    <div class="score-row">
+      <div class="score-card">
+        <div class="score-val" style="color: var(--real)">92%</div>
+        <div class="score-tag" style="color: var(--real)">✓ Pure ALE</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:8px;">Likely genuine</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val" style="color: var(--mixed)">51%</div>
+        <div class="score-tag" style="color: var(--mixed)">⚠ Mixed Pour</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:8px;">Proceed with caution</div>
+      </div>
+      <div class="score-card">
+        <div class="score-val" style="color: var(--skunked)">18%</div>
+        <div class="score-tag" style="color: var(--skunked)">✗ Skunked</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:8px;">Likely AI-generated</div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ── Features ── -->
+<section>
+  <p class="section-label">Features</p>
+  <h2>Built for the way you browse</h2>
+  <div class="features">
+    <div class="feature">
+      <h3>Video detection</h3>
+      <p>Automatically scans YouTube, X, TikTok, Facebook, Vimeo, and Instagram videos as you browse.</p>
+    </div>
+    <div class="feature">
+      <h3>Image analysis</h3>
+      <p>Hover over any image 200px or larger to reveal the ALE cap and run a one-click scan.</p>
+    </div>
+    <div class="feature">
+      <h3>Human verification</h3>
+      <p>Flag uncertain content for a human Brewmaster to review and sign off on.</p>
+    </div>
+    <div class="feature">
+      <h3>Cached results</h3>
+      <p>Previously scanned URLs load instantly — no extra API calls for content you've already checked.</p>
+    </div>
+    <div class="feature">
+      <h3>Google sign-in</h3>
+      <p>Sign in to tie your credits to your account across browser reinstalls.</p>
+    </div>
+    <div class="feature">
+      <h3>Privacy-first</h3>
+      <p>Only the URL or image address is sent for analysis. No page content, no tracking.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Credits ── -->
+<section class="features-bg">
+  <section class="credits-section">
+    <p class="section-label">Pricing</p>
+    <h2>Free to start</h2>
+    <div class="credits-box">
+      <div class="big">2</div>
+      <div class="label">free scans per day</div>
+      <div class="sub">Sign in with Google &mdash; no card required</div>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:20px;">
+      Need more? Additional credits coming soon.
+    </p>
+  </section>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <h2>Start verifying today</h2>
+  <p>Free to install. 2 scans per day. No credit card required.</p>
+  <a class="btn-primary" href="https://github.com/jackfperryjr/ale-extension/releases/latest" target="_blank" rel="noopener">
+    Download Extension
+  </a>
+</section>
+
+<footer>
+  <span class="foot-logo">ALE</span>
+  <div class="foot-links">
+    <a href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">GitHub</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </div>
+</footer>
+
+</body>
+</html>

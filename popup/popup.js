@@ -5,7 +5,13 @@ let currentVideoId = null;
 let lastAnalysisId = null;
 
 async function init() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [[tab], session] = await Promise.all([
+    chrome.tabs.query({ active: true, currentWindow: true }),
+    chrome.runtime.sendMessage({ type: 'GET_SESSION' }),
+  ]);
+
+  renderAuth(session);
+
   if (!tab?.url) return;
 
   currentUrl = tab.url;
@@ -14,7 +20,6 @@ async function init() {
   const urlEl = document.getElementById('currentUrl');
   urlEl.textContent = currentUrl.length > 52 ? currentUrl.slice(0, 49) + '…' : currentUrl;
 
-  // Any page can be analyzed — Hive accepts any media URL
   const isInternalPage = currentUrl.startsWith('chrome://') || currentUrl.startsWith('chrome-extension://');
   document.getElementById('verifyBtn').disabled = isInternalPage;
   if (isInternalPage) {
@@ -22,7 +27,6 @@ async function init() {
     return;
   }
 
-  // Show cached result immediately if available
   const cache = await chrome.storage.local.get(currentUrl);
   if (cache[currentUrl]) {
     renderScore(cache[currentUrl]);
@@ -131,6 +135,42 @@ document.getElementById('brewmasterBtn').addEventListener('click', async () => {
 
   setStatus('✓ Queued for review. A human will verify this shortly.');
   btn.style.display = 'none';
+});
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+function renderAuth(session) {
+  const signedOut = document.getElementById('authSignedOut');
+  const signedIn  = document.getElementById('authSignedIn');
+  if (session) {
+    signedOut.style.display = 'none';
+    signedIn.style.display  = 'flex';
+    document.getElementById('authEmail').textContent   = session.email;
+    document.getElementById('authCredits').textContent =
+      `${session.dailyCredits ?? '?'} / 2 today`;
+  } else {
+    signedOut.style.display = 'flex';
+    signedIn.style.display  = 'none';
+  }
+}
+
+document.getElementById('signInBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  const result = await chrome.runtime.sendMessage({ type: 'SIGN_IN' });
+  if (result?.error) {
+    btn.disabled = false;
+    btn.textContent = 'Sign in with Google';
+    setStatus(result.error);
+  } else {
+    renderAuth(result);
+  }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await chrome.runtime.sendMessage({ type: 'SIGN_OUT' });
+  renderAuth(null);
 });
 
 init();

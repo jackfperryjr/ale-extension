@@ -189,3 +189,72 @@ body {
   text-align: center;
   line-height: 1.4;
 }
+
+/* ── Auth footer ── */
+.ale-auth {
+  border-top: 1px solid #1E2830;
+  padding: 8px 14px 10px;
+}
+
+#authSignedOut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+#authSignedIn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-signin {
+  width: 100%;
+  padding: 7px;
+  background: transparent;
+  color: #E8A020;
+  border: 1px solid #E8A020;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-signin:hover { background: rgba(232,160,32,0.1); }
+.btn-signin:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.auth-hint {
+  font-size: 9px;
+  font-style: italic;
+  color: #60707A;
+}
+
+.auth-email {
+  font-size: 9px;
+  font-family: monospace;
+  color: #60707A;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-credits {
+  font-size: 9px;
+  color: #E8A020;
+  white-space: nowrap;
+}
+
+.btn-signout {
+  background: transparent;
+  border: none;
+  color: #60707A;
+  font-size: 9px;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+.btn-signout:hover { color: #E8DCC8; }
