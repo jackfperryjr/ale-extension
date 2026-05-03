@@ -53,7 +53,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  padding-top: 14px;
 }
 
 /* Official Google sign-in button */
@@ -97,20 +97,21 @@ body {
   font-style: italic;
   color: #60707A;
   text-align: center;
+  padding-top: 14px;
 }
 
 /* Signed-in state */
 #authSignedIn {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  padding-top: 14px;
 }
 
 .auth-account-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  padding-top: 14px;
 }
 
 .auth-email {

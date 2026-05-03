@@ -1,35 +1,54 @@
-# ALE Extension
+# <img src="./icons/android-chrome-192x192.png" width="32" height="32" /> ALE — Authenticity Logic Engine
 
-Chrome Manifest V3 extension for detecting synthetic and AI-generated video content. Injects a bottle cap icon onto video players across supported platforms — clicking it sends the URL to the ALE API and displays a reality score in seconds.
+> *Is it real, or has it been brewed up by a machine?*
+
+ALE is a Chrome extension that detects AI-generated and deepfake video content. Navigate to a video, click the bottle cap, and get a pour in seconds.
+
+---
+
+## The Pour
+
+Every analysis comes back as one of three verdicts:
+
+| Result | Score | What it means |
+|---|---|---|
+| **✓ Pure ALE** | ≥ 70 | Fresh from the source. Strong indicators of genuine content. |
+| **⚠ Mixed Pour** | 40–69 | Something's off. Could be real, could be a blend. Worth a closer look. |
+| **✗ Skunked** | < 40 | Don't drink this. High confidence of AI generation or deepfake. |
+
+Anything short of a Pure ALE shows a **Request Human Verification** button — one tap sends it to the Brewmaster Queue for a human sign-off.
 
 ---
 
 ## How It Works
 
-When you navigate to a supported video platform, the content script overlays a clickable bottle cap on the video player. Clicking it triggers an analysis request through the service worker, which calls the ALE API and returns a score:
+Sign in with your Google account, then navigate to any supported platform. A bottle cap appears on the video player. Click it — ALE sends the URL through its service worker to the ALE API, which runs it through Hive's deepfake and synthetic content detection model and pours back a score. Results are cached locally so revisiting the same video is instant.
 
-- **Pure ALE (≥ 85)** — strong indicators of genuine content
-- **Mixed Pour (60–84)** — inconclusive, may warrant closer review
-- **Flat (30–59)** — likely synthetic or manipulated
-- **Skunked (< 30)** — high confidence of AI generation or deepfake
-
-Any result below 85 shows a **Request Human Verification** button that queues the item for brewmaster review in The Brewery dashboard.
-
-Results are cached locally by URL so repeat visits don't re-trigger the API.
+Images work too: hover over any image ≥ 200×200 px and the bottle cap appears in the corner.
 
 ---
 
 ## Supported Platforms
 
 - YouTube
-- X (Twitter)
+- X / Twitter
 - TikTok
 - Vimeo
 - Instagram
-- Facebook
+- Facebook Reels
 - Reddit
+- Any page with a `<video>` element (generic fallback)
 
-Any page with a `<video>` element will also receive the bottle cap via a generic fallback. Qualifying images (≥ 200×200 px) get a hover-activated cap as well.
+---
+
+## Getting Started
+
+1. Go to `chrome://extensions` in Chrome
+2. Enable **Developer mode** (top-right toggle)
+3. Click **Load unpacked** and select this directory
+4. Click the ALE icon in your toolbar and **Sign in with Google**
+
+That's it. Navigate to any supported video and tap the bottle cap.
 
 ---
 
@@ -37,45 +56,29 @@ Any page with a `<video>` element will also receive the bottle cap via a generic
 
 ```
 ale-extension/
-├── manifest.json              # Extension manifest (MV3)
+├── manifest.json
 ├── background/
-│   └── service_worker.js      # Session ID management, API proxy
+│   └── service_worker.js      # Google OAuth, session management, API proxy
 ├── content/
-│   ├── content.js             # Bottle cap injection, SPA nav detection
-│   └── content.css            # Glow states (real / skunked)
+│   ├── content.js             # Bottle cap + panel injection, SPA nav detection
+│   └── content.css            # Cap glow states (real / mixed / skunked)
 ├── popup/
-│   ├── popup.html             # Manual analyze UI
-│   ├── popup.js               # Popup interaction logic
+│   ├── popup.html             # Account management (sign in/out, daily credits)
+│   ├── popup.js
 │   └── popup.css
 └── icons/
 ```
 
 ---
 
-## Getting Started
-
-1. Open Chrome and navigate to `chrome://extensions`
-2. Enable **Developer mode** (top right)
-3. Click **Load unpacked** and select this directory
-
-The extension icon will appear in your toolbar. Navigate to any supported video platform and click the bottle cap on the video player to run an analysis.
-
-### Pointing to a different API
-
-By default the extension calls `http://localhost:8000`. To point at a deployed API, update the `API_BASE` constant in both:
-
-- `background/service_worker.js`
-- `popup/popup.js`
-
----
-
 ## Tech Stack
 
-| Layer      | Technology                         |
-|------------|------------------------------------|
-| Extension  | Chrome Manifest V3, vanilla JS     |
-| API client | Fetch (REST calls to ALE API)      |
-| Storage    | `chrome.storage.local` (result cache, session ID) |
+| Layer | Technology |
+|---|---|
+| Extension | Chrome Manifest V3, vanilla JS |
+| Auth | Google OAuth via `chrome.identity` |
+| Detection | Hive AI deepfake + synthetic content model |
+| Storage | `chrome.storage.local` (result cache, session) |
 
 ---
 

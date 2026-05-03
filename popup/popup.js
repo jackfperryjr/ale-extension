@@ -30,6 +30,7 @@ document.getElementById('signInBtn').addEventListener('click', async () => {
     btn.disabled = false;
     setStatus(result.error);
   } else {
+    btn.disabled = false;
     setStatus('');
     renderAuth(result);
   }
