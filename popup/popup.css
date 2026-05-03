@@ -13,7 +13,7 @@ body {
   padding: 10px 14px;
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  padding-top: 14px;
 }
 
 .ale-logo {
