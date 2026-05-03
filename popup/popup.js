@@ -23,9 +23,12 @@ function renderAuth(session) {
 }
 
 document.getElementById('signInBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('signInBtn');
+  const btn  = document.getElementById('signInBtn');
+  const icon = document.querySelector('.ale-hero-icon');
   btn.disabled = true;
+  icon.classList.add('brewing');
   const result = await chrome.runtime.sendMessage({ type: 'SIGN_IN' });
+  icon.classList.remove('brewing');
   if (result?.error) {
     btn.disabled = false;
     setStatus(result.error);
