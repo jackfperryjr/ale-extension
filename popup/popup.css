@@ -103,7 +103,7 @@ body {
 #authSignedIn {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .auth-account-row {
