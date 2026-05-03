@@ -97,6 +97,7 @@ body {
   font-style: italic;
   color: #60707A;
   text-align: center;
+  padding-top: 14px;
 }
 
 /* Signed-in state */
@@ -110,7 +111,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  padding-top: 14px;
 }
 
 .auth-email {
