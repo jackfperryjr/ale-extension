@@ -15,16 +15,6 @@ async function saveSession(session) {
   await chrome.storage.local.set({ ale_session: session });
 }
 
-async function getSessionId() {
-  const session = await getSession();
-  if (session) return session.sessionId;
-  // Anonymous fallback: stable per browser install
-  const stored = await chrome.storage.local.get('ale_session_id');
-  if (stored.ale_session_id) return stored.ale_session_id;
-  const id = crypto.randomUUID();
-  await chrome.storage.local.set({ ale_session_id: id });
-  return id;
-}
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 
@@ -128,11 +118,12 @@ function checkStatus(res) {
 
 async function analyzeUrl(url, videoId) {
   try {
-    const sessionId = await getSessionId();
+    const session = await getSession();
+    if (!session) return { error: 'Sign in to analyze content. Click the ALE icon in your toolbar.' };
     const res = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: sessionId }),
+      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId }),
     });
     const data = checkStatus(res) ?? await res.json();
     // Keep stored session credits in sync
@@ -149,7 +140,8 @@ async function analyzeUrl(url, videoId) {
 
 async function queueBrewmaster(url, videoId, analysisId) {
   try {
-    const sessionId = await getSessionId();
+    const session = await getSession();
+    if (!session) return { error: 'Sign in to request human verification.' };
     const res = await fetch(`${API_BASE}/queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -157,7 +149,7 @@ async function queueBrewmaster(url, videoId, analysisId) {
         url,
         video_id: videoId ?? null,
         analysis_id: analysisId ?? null,
-        session_id: sessionId,
+        session_id: session.sessionId,
       }),
     });
     return checkStatus(res) ?? await res.json();
