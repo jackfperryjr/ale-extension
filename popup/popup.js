@@ -20,12 +20,9 @@ async function init() {
   const urlEl = document.getElementById('currentUrl');
   urlEl.textContent = currentUrl.length > 52 ? currentUrl.slice(0, 49) + '…' : currentUrl;
 
-  const isInternalPage = currentUrl.startsWith('chrome://') || currentUrl.startsWith('chrome-extension://');
-  document.getElementById('verifyBtn').disabled = isInternalPage;
-  if (isInternalPage) {
-    setStatus('Cannot verify browser internal pages.');
-    return;
-  }
+  const isAnalyzable = currentUrl.startsWith('http://') || currentUrl.startsWith('https://');
+  if (!isAnalyzable) return;
+  document.getElementById('verifyBtn').style.display = 'block';
 
   const cache = await chrome.storage.local.get(currentUrl);
   if (cache[currentUrl]) {
@@ -164,6 +161,7 @@ document.getElementById('signInBtn').addEventListener('click', async () => {
     btn.textContent = 'Sign in with Google';
     setStatus(result.error);
   } else {
+    setStatus('');
     renderAuth(result);
   }
 });
