@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'ANALYZE') {
-    analyzeUrl(msg.url, msg.videoId).then(sendResponse);
+    analyzeUrl(msg.url, msg.videoId, msg.videoDuration).then(sendResponse);
     return true;
   }
 
@@ -111,19 +111,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
 function checkStatus(res) {
   if (res.status === 402) return { error: "You're out of ALE. Come back tomorrow for 2 more." };
+  if (res.status === 413) return { error: 'Video is too long. Max 10 minutes per pour.' };
   if (res.status === 429) return { error: 'Too many requests. Give it a moment.' };
   if (!res.ok)            return { error: `API error (${res.status}).` };
   return null;
 }
 
-async function analyzeUrl(url, videoId) {
+async function analyzeUrl(url, videoId, videoDuration) {
   try {
     const session = await getSession();
-    if (!session) return { error: 'Sign in to analyze content. Click the ALE icon in your toolbar.' };
+    if (!session) return { error: 'Sign in to pour. Click the ALE icon in your toolbar.' };
     const res = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId }),
+      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId, video_duration_seconds: videoDuration ?? null }),
     });
     const data = checkStatus(res) ?? await res.json();
     // Keep stored session credits in sync
