@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'ANALYZE') {
-    analyzeUrl(msg.url, msg.videoId).then(sendResponse);
+    analyzeUrl(msg.url, msg.videoId, msg.videoDuration).then(sendResponse);
     return true;
   }
 
@@ -118,14 +118,14 @@ function checkStatus(res) {
   return null;
 }
 
-async function analyzeUrl(url, videoId) {
+async function analyzeUrl(url, videoId, videoDuration) {
   try {
     const session = await getSession();
-    if (!session) return { error: 'Sign in to analyze content. Click the ALE icon in your toolbar.' };
+    if (!session) return { error: 'Sign in to pour. Click the ALE icon in your toolbar.' };
     const res = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId }),
+      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId, video_duration_seconds: videoDuration ?? null }),
     });
     const data = checkStatus(res) ?? await res.json();
     // Keep stored session credits in sync

@@ -22,6 +22,13 @@ function getVideoId() {
   return null;
 }
 
+function getVideoDuration() {
+  if (!currentVideoId) return null;
+  const video = document.querySelector('video');
+  if (video && isFinite(video.duration) && video.duration > 0) return Math.round(video.duration);
+  return null;
+}
+
 function truncateUrl(url, n = 36) {
   try {
     const { hostname, pathname } = new URL(url);
@@ -46,14 +53,14 @@ function buildPanel() {
     <div class="alep-url" id="alep-url"></div>
     <div class="alep-body">
       <div id="alep-idle" class="alep-idle">
-        <span>Starting analysis…</span>
+        <span>Starting pour…</span>
       </div>
       <div id="alep-pour" class="alep-pour" style="display:none">
         <div class="alep-glass">
           <div class="alep-liquid" id="alep-liquid"></div>
           <div class="alep-foam"></div>
         </div>
-        <span class="alep-pour-label">Analyzing…</span>
+        <span class="alep-pour-label">Pouring…</span>
       </div>
       <div id="alep-score" class="alep-score" style="display:none">
         <div class="alep-ring-wrap">
@@ -68,7 +75,7 @@ function buildPanel() {
       </div>
     </div>
     <div class="alep-actions">
-      <button id="alep-verify" class="alep-btn-verify" style="display:none">Re-analyze</button>
+      <button id="alep-verify" class="alep-btn-verify" style="display:none">Re-pour</button>
       <button id="alep-brewmaster" class="alep-btn-brewmaster" style="display:none">Request Human Verification</button>
     </div>
     <div class="alep-status" id="alep-status"></div>
@@ -235,6 +242,7 @@ async function runAnalysis() {
     type: 'ANALYZE',
     url: analyzeUrl,
     videoId: currentVideoId,
+    videoDuration: getVideoDuration(),
   });
 
   if (!result || result.error) {
@@ -277,7 +285,7 @@ async function requestBrewmaster() {
 function buildCap() {
   const cap = document.createElement('div');
   cap.id = ALE_CAP_ID;
-  cap.dataset.tooltip = 'ALE — Click to analyze';
+  cap.dataset.tooltip = 'ALE — Click to pour';
   const iconUrl = chrome.runtime.getURL('icons/android-chrome-192x192.png');
   cap.innerHTML = `
     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -337,7 +345,7 @@ function isQualifyingImage(img) {
 function buildImgCap() {
   const cap = document.createElement('div');
   cap.id = ALE_IMG_CAP_ID;
-  cap.dataset.tooltip = 'ALE — Click to analyze';
+  cap.dataset.tooltip = 'ALE — Click to pour';
   const iconUrl = chrome.runtime.getURL('icons/android-chrome-192x192.png');
   cap.innerHTML = `
     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
@@ -393,7 +401,7 @@ function showImgCap(img) {
     cap._targetImg = img;
     const ring = cap.querySelector('.ale-cap-ring');
     if (ring) ring.setAttribute('stroke', '#E8A020');
-    cap.dataset.tooltip = 'ALE — Click to analyze';
+    cap.dataset.tooltip = 'ALE — Click to pour';
   }
 }
 
