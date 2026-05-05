@@ -1,6 +1,11 @@
 async function init() {
   const session = await chrome.runtime.sendMessage({ type: 'GET_SESSION' });
   renderAuth(session);
+  if (session) {
+    chrome.runtime.sendMessage({ type: 'REFRESH_SESSION' }, (fresh) => {
+      if (fresh && !fresh.error) renderAuth(fresh);
+    });
+  }
 }
 
 function setStatus(msg) {
@@ -13,9 +18,9 @@ function renderAuth(session) {
   if (session) {
     signedOut.style.display = 'none';
     signedIn.style.display  = 'block';
-    document.getElementById('authEmail').textContent   = session.email;
-    document.getElementById('authCredits').textContent =
-      `${session.dailyCredits ?? '?'} / 2`;
+    document.getElementById('authEmail').textContent       = session.email;
+    document.getElementById('authFreeCredits').textContent = `${session.dailyCredits ?? '?'} / 3`;
+    document.getElementById('authPaidCredits').textContent = `${session.credits ?? 0}`;
   } else {
     signedOut.style.display = 'flex';
     signedIn.style.display  = 'none';

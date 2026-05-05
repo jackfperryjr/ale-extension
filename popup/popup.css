@@ -147,14 +147,22 @@ body {
 }
 .btn-signout:hover { color: #E8DCC8; }
 
+.auth-credits-box {
+  background: #0E1820;
+  border: 1px solid #1E2830;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .auth-credits-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0E1820;
-  border: 1px solid #1E2830;
-  border-radius: 6px;
   padding: 8px 12px;
+}
+
+.auth-credits-row + .auth-credits-row {
+  border-top: 1px solid #1E2830;
 }
 
 .auth-credits-label {
@@ -167,6 +175,10 @@ body {
   font-weight: bold;
   color: #E8A020;
   font-family: monospace;
+}
+
+.auth-credits-paid {
+  color: #60A8E8;
 }
 
 /* ── Status ── */
