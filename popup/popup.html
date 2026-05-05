@@ -27,13 +27,19 @@
         </svg>
         Sign in with Google
       </button>
-      <p class="auth-hint">Requires a Google account · 2 free analyses per day</p>
+      <p class="auth-hint">Requires a Google account · 3 free pours per day</p>
     </div>
 
     <div id="authSignedIn" style="display:none">
-      <div class="auth-credits-row">
-        <span class="auth-credits-label">Analyses today</span>
-        <span class="auth-credits" id="authCredits"></span>
+      <div class="auth-credits-box">
+        <div class="auth-credits-row">
+          <span class="auth-credits-label">Free pours today</span>
+          <span class="auth-credits" id="authFreeCredits"></span>
+        </div>
+        <div class="auth-credits-row">
+          <span class="auth-credits-label">Paid credits</span>
+          <span class="auth-credits auth-credits-paid" id="authPaidCredits"></span>
+        </div>
       </div>
       <div class="auth-account-row">
         <span class="auth-email" id="authEmail"></span>

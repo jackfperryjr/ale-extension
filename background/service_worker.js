@@ -55,6 +55,7 @@ async function signInWithGoogle() {
     sessionId: data.session_id,
     email: data.email,
     dailyCredits: data.daily_credits,
+    credits: data.credits ?? 0,
   };
   await saveSession(session);
   return session;
@@ -62,6 +63,21 @@ async function signInWithGoogle() {
 
 async function signOut() {
   await chrome.storage.local.remove('ale_session');
+}
+
+async function refreshSession() {
+  try {
+    const session = await getSession();
+    if (!session) return null;
+    const res = await fetch(`${API_BASE}/me?session_id=${encodeURIComponent(session.sessionId)}`);
+    if (!res.ok) return session;
+    const data = await res.json();
+    const updated = { ...session, dailyCredits: data.daily_credits, credits: data.credits ?? 0 };
+    await saveSession(updated);
+    return updated;
+  } catch {
+    return null;
+  }
 }
 
 // ── Message handler ───────────────────────────────────────────────────────────
@@ -105,6 +121,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     getSession().then(sendResponse);
     return true;
   }
+
+  if (msg.type === 'REFRESH_SESSION') {
+    refreshSession().then(sendResponse);
+    return true;
+  }
 });
 
 // ── API helpers ───────────────────────────────────────────────────────────────
@@ -122,7 +143,7 @@ async function fetchWithRetry(url, options, retries = 3, delayMs = 2000) {
 
 function checkStatus(res) {
   if (res.status === 402) return { error: "You're out of ALE. Come back tomorrow for 2 more." };
-  if (res.status === 413) return { error: 'Video is too long. Max 10 minutes per pour.' };
+  if (res.status === 413) return { error: 'Video is too long. Max 15 minutes per pour.' };
   if (res.status === 422) return { error: "Media format not supported. Try a direct image URL." };
   if (res.status === 429) return { error: 'Too many requests. Give it a moment.' };
   if (!res.ok)            return { error: `API error (${res.status}).` };
@@ -142,7 +163,11 @@ async function analyzeUrl(url, videoId, videoDuration) {
     // Keep stored session credits in sync
     if (data.daily_credits != null) {
       const session = await getSession();
-      if (session) await saveSession({ ...session, dailyCredits: data.daily_credits });
+      if (session) await saveSession({
+        ...session,
+        dailyCredits: data.daily_credits,
+        credits: data.credits ?? session.credits,
+      });
     }
     return data;
   } catch (err) {
