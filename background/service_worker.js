@@ -43,7 +43,7 @@ async function signInWithGoogle() {
   const accessToken = params.get('access_token');
   if (!accessToken) throw new Error('No access token returned');
 
-  const res = await fetch(`${API_BASE}/auth/google`, {
+  const res = await fetchWithRetry(`${API_BASE}/auth/google`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ access_token: accessToken }),
@@ -108,6 +108,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 // ── API helpers ───────────────────────────────────────────────────────────────
+
+async function fetchWithRetry(url, options, retries = 3, delayMs = 2000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+}
 
 function checkStatus(res) {
   if (res.status === 402) return { error: "You're out of ALE. Come back tomorrow for 2 more." };
