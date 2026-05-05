@@ -36,15 +36,37 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 40px;
+      padding: 20px 26px;
       border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
-      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      filter: drop-shadow(0 0 8px rgba(232, 160, 32, 0.5));
+    }
+
+    .nav-logo-text {
+      font-size: 24px;
       font-weight: bold;
       letter-spacing: 4px;
       color: var(--amber);
+      line-height: 1;
+    }
+
+    .nav-logo-tagline {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 3px;
     }
 
     .nav-links {
@@ -315,7 +337,13 @@
 <body>
 
 <nav>
-  <span class="nav-logo">ALE</span>
+  <a class="nav-logo" href="#">
+    <img src="ale-icon.png" alt="ALE" width="36" height="36" class="nav-logo-icon">
+    <div>
+      <div class="nav-logo-text">ALE</div>
+      <div class="nav-logo-tagline">Authenticity Logic Engine</div>
+    </div>
+  </a>
   <div class="nav-links">
     <a href="#how-it-works">How it works</a>
     <a href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">GitHub</a>
@@ -324,7 +352,6 @@
 
 <!-- ── Hero ── -->
 <section class="hero">
-  <p class="hero-eyebrow">Authenticity Logic Engine</p>
   <h1>Know what's real.<br><em>Before you share it.</em></h1>
   <p>
     ALE scans videos and images for AI generation and deepfakes — right in your browser,
