@@ -20,7 +20,9 @@ function renderAuth(session) {
     signedIn.style.display  = 'block';
     document.getElementById('authEmail').textContent       = session.email;
     document.getElementById('authFreeCredits').textContent = `${session.dailyCredits ?? '?'} / 3`;
-    document.getElementById('authPaidCredits').textContent = `${session.credits ?? 0}`;
+    const paid = session.credits ?? 0;
+    document.getElementById('authPaidCredits').textContent = paid;
+    document.getElementById('authPaidRow').style.display   = paid > 0 ? 'flex' : 'none';
   } else {
     signedOut.style.display = 'flex';
     signedIn.style.display  = 'none';
