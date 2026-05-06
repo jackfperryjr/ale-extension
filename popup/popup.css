@@ -181,6 +181,22 @@ body {
   color: #60A8E8;
 }
 
+/* ── Support ── */
+.ale-support {
+  padding: 0 18px 14px;
+  text-align: center;
+}
+
+.ale-support a {
+  font-size: 10px;
+  font-style: italic;
+  color: #60707A;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.ale-support a:hover { color: #E8A020; }
+
 /* ── Status ── */
 .ale-status {
   padding: 0 18px 12px;
