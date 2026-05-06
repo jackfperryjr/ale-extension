@@ -18,7 +18,8 @@
     "https://player.vimeo.com/*",
     "https://www.instagram.com/*",
     "https://www.facebook.com/*",
-    "https://www.reddit.com/*"
+    "https://www.reddit.com/*",
+    "https://www.linkedin.com/*"
   ],
   "background": {
     "service_worker": "background/service_worker.js"
@@ -34,7 +35,8 @@
         "https://player.vimeo.com/*",
         "https://www.instagram.com/*",
         "https://www.facebook.com/*",
-        "https://www.reddit.com/*"
+        "https://www.reddit.com/*",
+        "https://www.linkedin.com/*"
       ],
       "js": [
         "content/content.js"

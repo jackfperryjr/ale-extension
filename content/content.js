@@ -477,6 +477,25 @@ function injectFacebookReel() {
   }, 300);
 }
 
+function injectLinkedIn() {
+  if (document.getElementById(ALE_CAP_ID)) return;
+  let attempts = 0;
+  const poll = setInterval(() => {
+    if (document.getElementById(ALE_CAP_ID) || ++attempts > 30) {
+      clearInterval(poll);
+      return;
+    }
+    // LinkedIn wraps its video player in a .media-player container
+    const player = document.querySelector('[class*="media-player"]');
+    if (!player) return;
+    const { width, height } = player.getBoundingClientRect();
+    if (width > 0 && height > 0) {
+      clearInterval(poll);
+      injectBottleCap(player);
+    }
+  }, 300);
+}
+
 function tryInject() {
   const host = window.location.hostname;
   if (host === 'www.youtube.com') {
@@ -490,6 +509,8 @@ function tryInject() {
   } else if (host === 'www.tiktok.com') {
     const player = document.querySelector('[class*="DivVideoWrapper"], video');
     if (player?.parentElement) injectBottleCap(player.parentElement);
+  } else if (host === 'www.linkedin.com') {
+    injectLinkedIn();
   } else if (host === 'vimeo.com' || host === 'player.vimeo.com') {
     const player = document.querySelector('.vp-player-layout, #player');
     if (player) injectBottleCap(player);
