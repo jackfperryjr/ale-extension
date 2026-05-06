@@ -67,6 +67,13 @@ jobs:
             --exclude "README.md" \
             --exclude ".gitignore"
 
+      - name: Commit docs download
+        run: |
+          cp ale-extension-${{ steps.version.outputs.tag }}.zip docs/ale-extension.zip
+          git add docs/ale-extension.zip
+          git commit -m "chore: update docs download for ${{ steps.version.outputs.tag }} [skip ci]"
+          git push origin main
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
