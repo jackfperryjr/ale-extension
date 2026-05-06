@@ -13,7 +13,11 @@ let lastAnalysisId = null;
 function getVideoId() {
   const host = window.location.hostname;
   if (host === 'www.youtube.com') {
-    return new URLSearchParams(window.location.search).get('v');
+    const v = new URLSearchParams(window.location.search).get('v');
+    if (v) return v;
+    const m = window.location.pathname.match(/\/shorts\/([^/?]+)/);
+    if (m) return m[1];
+    return null;
   }
   if (host === 'x.com' || host === 'twitter.com') {
     const m = window.location.pathname.match(/\/status\/(\d+)/);
@@ -454,6 +458,45 @@ function findVideoContainer(video) {
   return video.parentElement;
 }
 
+function injectYouTubeShorts() {
+  if (document.getElementById(ALE_CAP_ID)) return;
+  let attempts = 0;
+  const poll = setInterval(() => {
+    if (document.getElementById(ALE_CAP_ID) ||
+        !window.location.pathname.startsWith('/shorts/') ||
+        ++attempts > 20) {
+      clearInterval(poll);
+      return;
+    }
+    const player = document.querySelector('#shorts-player, ytd-reel-video-renderer');
+    if (!player) return;
+    const { width, height } = player.getBoundingClientRect();
+    if (width > 0 && height > 0) {
+      clearInterval(poll);
+      injectBottleCap(player);
+    }
+  }, 300);
+}
+
+function injectInstagram() {
+  if (document.getElementById(ALE_CAP_ID)) return;
+  let attempts = 0;
+  const poll = setInterval(() => {
+    if (document.getElementById(ALE_CAP_ID) || ++attempts > 20) {
+      clearInterval(poll);
+      return;
+    }
+    const v = document.querySelector('video');
+    if (!v) return;
+    const container = findVideoContainer(v);
+    const { width, height } = container.getBoundingClientRect();
+    if (width > 0 && height > 0) {
+      clearInterval(poll);
+      injectBottleCap(container);
+    }
+  }, 300);
+}
+
 function injectFacebookReel() {
   if (document.getElementById(ALE_CAP_ID)) return;
   let attempts = 0;
@@ -480,8 +523,14 @@ function injectFacebookReel() {
 function tryInject() {
   const host = window.location.hostname;
   if (host === 'www.youtube.com') {
-    const player = document.querySelector('#movie_player, ytd-player');
-    if (player) injectBottleCap(player);
+    if (window.location.pathname.startsWith('/shorts/')) {
+      injectYouTubeShorts();
+    } else {
+      const player = document.querySelector('#movie_player, ytd-player');
+      if (player) injectBottleCap(player);
+    }
+  } else if (host === 'www.instagram.com') {
+    injectInstagram();
   } else if (host === 'x.com' || host === 'twitter.com') {
     document.querySelectorAll('[data-testid="videoPlayer"]').forEach(injectBottleCap);
   } else if (host === 'www.facebook.com' || host === 'facebook.com') {
