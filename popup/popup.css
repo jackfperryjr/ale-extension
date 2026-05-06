@@ -5,6 +5,8 @@ body {
   font-family: Georgia, 'Times New Roman', serif;
   background: #080E12;
   color: #E8DCC8;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 /* ── Header ── */
