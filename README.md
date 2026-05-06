@@ -4,6 +4,15 @@
 
 ALE is a Chrome extension that detects AI-generated and deepfake video content. Navigate to a video, click the bottle cap, and get a pour in seconds.
 
+<p align="center">
+<img src="https://img.shields.io/github/sponsors/jackfperryjr?style=flat-square&color=ea4aaa" alt="GitHub Sponsors">
+<img src="https://img.shields.io/badge/funding-0/50USD-red?style=flat-square" alt="Funding Goal">
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black">
+<img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white">
+<img src="https://img.shields.io/github/license/jackfperryjr/getale?style=flat-square&color=black" alt="License">
+<img src="https://img.shields.io/badge/status-active-success?style=flat-square" alt="Status">
+</p>
+
 ---
 
 ## The Pour
