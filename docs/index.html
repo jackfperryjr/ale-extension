@@ -336,6 +336,8 @@
 </head>
 <body>
 
+<div id="statusBanner" style="display:none; background:#3A2800; color:#F0A020; font-size:13px; text-align:center; padding:10px 24px; border-bottom:1px solid #5A3800;"></div>
+
 <nav>
   <a class="nav-logo" href="#">
     <img src="ale-icon.png" alt="ALE" width="36" height="36" class="nav-logo-icon">
@@ -497,5 +499,17 @@
   </div>
 </footer>
 
+<script>
+  fetch('https://api.getale.io/status')
+    .then(r => r.json())
+    .then(({ active, message }) => {
+      if (active && message) {
+        const b = document.getElementById('statusBanner');
+        b.textContent = message;
+        b.style.display = 'block';
+      }
+    })
+    .catch(() => {});
+</script>
 </body>
 </html>
