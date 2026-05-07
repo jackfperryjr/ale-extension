@@ -112,13 +112,29 @@ function openPanel(anchorEl, { imageUrl = null } = {}) {
   } else {
     analyzeUrl     = currentUrl;
     currentVideoId = getVideoId();
+
+    // X.com feed: prefer the video's poster thumbnail (direct image URL);
+    // fall back to the stored tweet ID for og:image scraping.
+    const xHost = window.location.hostname;
+    if ((xHost === 'x.com' || xHost === 'twitter.com') && !currentVideoId) {
+      const posterUrl = anchorEl?.dataset?.alePosterUrl;
+      const tweetId   = anchorEl?.dataset?.aleTweetId;
+      if (posterUrl) {
+        analyzeUrl     = posterUrl;   // treat as plain image — no video_id
+        currentVideoId = null;
+      } else if (tweetId) {
+        currentVideoId = tweetId;
+        analyzeUrl     = `https://x.com/i/status/${tweetId}`;
+      }
+    }
   }
   lastAnalysisId = null;
 
   const panel = buildPanel();
   panel.querySelector('#alep-url').textContent = truncateUrl(analyzeUrl);
 
-  if (imageUrl) {
+  const useFixed = imageUrl || (anchorEl === document.body) || !document.body.contains(anchorEl);
+  if (useFixed) {
     panel.style.position = 'fixed';
     panel.style.zIndex   = '2147483647';
     panel.style.top      = Math.min(anchorRect.bottom + 8, window.innerHeight - 420) + 'px';
@@ -310,7 +326,7 @@ function buildCap() {
     if (document.getElementById(ALE_PANEL_ID)) {
       closePanel();
     } else {
-      openPanel(cap.parentElement);
+      openPanel(cap._anchor ?? cap.parentElement);
     }
   });
 
@@ -496,13 +512,92 @@ function injectLinkedIn() {
   }, 300);
 }
 
+// Inject the bottle cap for X.com feed videos using fixed positioning on document.body.
+// This avoids two failure modes: overflow:hidden on the player container, and React
+// reconciliation removing any child we append to a managed DOM node.
+function injectXVideoCap(video) {
+  if (document.getElementById(ALE_CAP_ID)) return;
+
+  const player = findVideoContainer(video);
+  if (video.poster?.startsWith('https://')) {
+    player.dataset.alePosterUrl = video.poster;
+  }
+
+  const cap = buildCap();
+  cap._anchor = player; // openPanel reads dataset and rect from here
+  cap.style.position = 'fixed';
+  cap.style.zIndex   = '2147483647';
+  document.body.appendChild(cap);
+
+  // Keep the cap pinned to the player's top-right corner via rAF.
+  // Remove (not hide) when off-screen so the MutationObserver can re-inject
+  // on the next visible video as the user scrolls.
+  ;(function tick() {
+    if (!document.body.contains(cap)) return;
+    const r = player.getBoundingClientRect();
+    if (r.width === 0 || r.bottom <= 0 || r.top >= window.innerHeight) {
+      cap.remove();
+      return;
+    }
+    cap.style.top   = (r.top  + 10) + 'px';
+    cap.style.right = (window.innerWidth - r.right + 10) + 'px';
+    requestAnimationFrame(tick);
+  })();
+}
+
+// Walk up from el (up to 30 levels), searching each ancestor's subtree for a /status/<id> link.
+function findTweetIdFromElement(el) {
+  let node = el;
+  for (let i = 0; i < 30; i++) {
+    if (!node || node === document.body) break;
+    const link = node.querySelector('a[href*="/status/"]');
+    if (link) {
+      const m = link.href.match(/\/status\/(\d+)/);
+      if (m) return m[1];
+    }
+    node = node.parentElement;
+  }
+  return null;
+}
+
+function tryInjectX() {
+  if (document.getElementById(ALE_CAP_ID)) return;
+
+  // Try the explicit testid first (works on status pages and some feed renders)
+  const testidPlayers = [...document.querySelectorAll('[data-testid="videoPlayer"]')];
+
+  if (testidPlayers.length) {
+    for (const player of testidPlayers) {
+      if (document.getElementById(ALE_CAP_ID)) break;
+      if (!window.location.pathname.match(/\/status\/(\d+)/)) {
+        const video = player.querySelector('video') || player;
+        const tweetId = findTweetIdFromElement(video);
+        if (tweetId) player.dataset.aleTweetId = tweetId;
+      }
+      injectBottleCap(player);
+    }
+    return;
+  }
+
+  // Fallback: find <video poster> elements — X.com sets poster on feed videos.
+  // Use injectXVideoCap (fixed-position on body) to survive overflow:hidden and React re-renders.
+  for (const video of document.querySelectorAll('video[poster]')) {
+    if (document.getElementById(ALE_CAP_ID)) break;
+    const player = findVideoContainer(video);
+    const r = player.getBoundingClientRect();
+    if (r.width < 100 || r.height < 100) continue;
+    if (r.bottom <= 0 || r.top >= window.innerHeight) continue; // off-screen
+    injectXVideoCap(video);
+  }
+}
+
 function tryInject() {
   const host = window.location.hostname;
   if (host === 'www.youtube.com') {
     const player = document.querySelector('#movie_player, ytd-player');
     if (player) injectBottleCap(player);
   } else if (host === 'x.com' || host === 'twitter.com') {
-    document.querySelectorAll('[data-testid="videoPlayer"]').forEach(injectBottleCap);
+    tryInjectX();
   } else if (host === 'www.facebook.com' || host === 'facebook.com') {
     if (!window.location.pathname.includes('/reel/')) return;
     injectFacebookReel();
