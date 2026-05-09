@@ -4,7 +4,6 @@
   "version": "0.2.18",
   "description": "Verify if online video content is real or synthetic. Brewed with care.",
   "permissions": [
-    "activeTab",
     "storage",
     "identity"
   ],
