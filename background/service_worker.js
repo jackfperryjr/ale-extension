@@ -98,7 +98,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'ANALYZE') {
-    analyzeUrl(msg.url, msg.videoId, msg.videoDuration).then(sendResponse);
+    analyzeUrl(msg.url, msg.videoId, msg.videoDuration, msg.trigger, msg.contentType).then(sendResponse);
+    return true;
+  }
+
+  if (msg.type === 'DISAGREE') {
+    markDisagreement(msg.analysisId).then(sendResponse);
     return true;
   }
 
@@ -150,14 +155,21 @@ function checkStatus(res) {
   return null;
 }
 
-async function analyzeUrl(url, videoId, videoDuration) {
+async function analyzeUrl(url, videoId, videoDuration, trigger, contentType) {
   try {
     const session = await getSession();
     if (!session) return { error: 'Sign in to pour. Click the ALE icon in your toolbar.' };
     const res = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, video_id: videoId ?? null, session_id: session.sessionId, video_duration_seconds: videoDuration ?? null }),
+      body: JSON.stringify({
+        url,
+        video_id: videoId ?? null,
+        session_id: session.sessionId,
+        video_duration_seconds: videoDuration ?? null,
+        trigger: trigger ?? null,
+        content_type: contentType ?? null,
+      }),
     });
     const data = checkStatus(res) ?? await res.json();
     // Keep stored session credits in sync
@@ -173,6 +185,20 @@ async function analyzeUrl(url, videoId, videoDuration) {
   } catch (err) {
     console.error('[ALE] /analyze failed:', err);
     return { error: 'Could not reach ALE API.' };
+  }
+}
+
+async function markDisagreement(analysisId) {
+  try {
+    const session = await getSession();
+    await fetch(`${API_BASE}/analyze/${analysisId}/disagree`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: session?.sessionId ?? null }),
+    });
+    return { ok: true };
+  } catch {
+    return { ok: false };
   }
 }
 

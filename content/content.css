@@ -275,6 +275,21 @@
 .alep-btn-brewmaster:hover:not(:disabled) { background: rgba(232, 160, 32, 0.12); }
 .alep-btn-brewmaster:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.alep-btn-disagree {
+  width: 100%;
+  padding: 6px;
+  background: transparent;
+  color: #60707A;
+  border: 1px solid #1E2830;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.alep-btn-disagree:hover:not(:disabled) { border-color: #E03050; color: #E03050; }
+.alep-btn-disagree:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .alep-status {
   padding: 2px 12px 8px;
   font-size: 9px;

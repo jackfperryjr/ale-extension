@@ -3,10 +3,12 @@ const ALE_IMG_CAP_ID = 'ale-img-cap';
 const ALE_PANEL_ID   = 'ale-panel';
 const CIRCUMFERENCE = 2 * Math.PI * 40;
 
-let currentUrl     = window.location.href; // tracks page URL for navigation detection
-let analyzeUrl     = window.location.href; // what actually gets sent to the API (may be img.src)
-let currentVideoId = null;
-let lastAnalysisId = null;
+let currentUrl         = window.location.href; // tracks page URL for navigation detection
+let analyzeUrl         = window.location.href; // what actually gets sent to the API (may be img.src)
+let currentVideoId     = null;
+let lastAnalysisId     = null;
+let currentTrigger     = 'cap_click';  // "cap_click" | "image_hover" | "manual_url"
+let currentContentType = 'video';      // "image" | "video"
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -77,6 +79,7 @@ function buildPanel() {
     <div class="alep-actions">
       <button id="alep-verify" class="alep-btn-verify" style="display:none">Re-pour</button>
       <button id="alep-brewmaster" class="alep-btn-brewmaster" style="display:none">Request Human Verification</button>
+      <button id="alep-disagree" class="alep-btn-disagree" style="display:none">👎 Score wrong?</button>
     </div>
     <div class="alep-status" id="alep-status"></div>
   `;
@@ -96,13 +99,20 @@ function buildPanel() {
     requestBrewmaster();
   });
 
+  panel.querySelector('#alep-disagree').addEventListener('click', (e) => {
+    e.stopPropagation();
+    disagree();
+  });
+
   // Swallow all clicks so they don't reach the video player underneath
   panel.addEventListener('click', (e) => e.stopPropagation());
 
   return panel;
 }
 
-function openPanel(anchorEl, { imageUrl = null } = {}) {
+function openPanel(anchorEl, { imageUrl = null, trigger = 'cap_click' } = {}) {
+  currentTrigger     = trigger;
+  currentContentType = imageUrl ? 'image' : 'video';
   // Capture rect before closePanel hides the element (hidden elements return zeros)
   const anchorRect = anchorEl.getBoundingClientRect();
   closePanel();
@@ -242,6 +252,9 @@ function renderScore(data) {
   // Show brewmaster option for anything not confidently real
   const brewmasterBtn = panelEl('alep-brewmaster');
   if (brewmasterBtn && val < 85) brewmasterBtn.style.display = 'block';
+
+  const disagreeBtn = panelEl('alep-disagree');
+  if (disagreeBtn) disagreeBtn.style.display = 'block';
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
@@ -249,8 +262,10 @@ function renderScore(data) {
 async function runAnalysis() {
   const verifyBtn = panelEl('alep-verify');
   const brewmasterBtn = panelEl('alep-brewmaster');
+  const disagreeBtn = panelEl('alep-disagree');
   if (verifyBtn) verifyBtn.disabled = true;
   if (brewmasterBtn) brewmasterBtn.style.display = 'none';
+  if (disagreeBtn) disagreeBtn.style.display = 'none';
   setStatus('');
   showPour();
 
@@ -259,6 +274,8 @@ async function runAnalysis() {
     url: analyzeUrl,
     videoId: currentVideoId,
     videoDuration: getVideoDuration(),
+    trigger: currentTrigger,
+    contentType: currentContentType,
   });
 
   if (!result || result.error) {
@@ -294,6 +311,13 @@ async function requestBrewmaster() {
 
   setStatus('✓ Queued for human review. A brewmaster will verify this shortly.');
   if (brewmasterBtn) brewmasterBtn.style.display = 'none';
+}
+
+async function disagree() {
+  if (!lastAnalysisId) return;
+  const btn = panelEl('alep-disagree');
+  if (btn) { btn.disabled = true; btn.textContent = '✓ Noted'; }
+  chrome.runtime.sendMessage({ type: 'DISAGREE', analysisId: lastAnalysisId });
 }
 
 // ── Bottle cap ────────────────────────────────────────────────────────────────
@@ -385,7 +409,7 @@ function buildImgCap() {
     if (document.getElementById(ALE_PANEL_ID)) {
       closePanel();
     } else if (cap._targetImg) {
-      openPanel(cap, { imageUrl: cap._targetImg.src });
+      openPanel(cap, { imageUrl: cap._targetImg.src, trigger: 'image_hover' });
     }
   });
 
