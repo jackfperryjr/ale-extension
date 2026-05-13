@@ -1,4 +1,7 @@
 async function init() {
+  const { version } = chrome.runtime.getManifest();
+  document.getElementById('aleVersion').textContent = `v${version}`;
+
   const session = await chrome.runtime.sendMessage({ type: 'GET_SESSION' });
   renderAuth(session);
   if (session) {

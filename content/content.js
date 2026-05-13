@@ -123,18 +123,27 @@ function openPanel(anchorEl, { imageUrl = null, trigger = 'cap_click' } = {}) {
     analyzeUrl     = currentUrl;
     currentVideoId = getVideoId();
 
-    // X.com feed: prefer the video's poster thumbnail (direct image URL);
-    // fall back to the stored tweet ID for og:image scraping.
-    const xHost = window.location.hostname;
-    if ((xHost === 'x.com' || xHost === 'twitter.com') && !currentVideoId) {
-      const posterUrl = anchorEl?.dataset?.alePosterUrl;
-      const tweetId   = anchorEl?.dataset?.aleTweetId;
-      if (posterUrl) {
-        analyzeUrl     = posterUrl;   // treat as plain image — no video_id
-        currentVideoId = null;
-      } else if (tweetId) {
-        currentVideoId = tweetId;
-        analyzeUrl     = `https://x.com/i/status/${tweetId}`;
+    // Prefer the video's poster image — check IDL property, then HTML attributes
+    // (needed for web components like shreddit-player), then a nested <video>.
+    const videoPoster = anchorEl?.poster
+      ?? anchorEl?.getAttribute?.('poster')
+      ?? anchorEl?.getAttribute?.('preview')
+      ?? anchorEl?.querySelector?.('video')?.poster;
+    const posterUrl = videoPoster?.startsWith('https://')
+      ? videoPoster
+      : anchorEl?.dataset?.alePosterUrl;
+    if (posterUrl) {
+      analyzeUrl     = posterUrl;
+      currentVideoId = null;
+    } else {
+      // X.com fallback: use stored tweet ID for og:image scraping
+      const xHost = window.location.hostname;
+      if ((xHost === 'x.com' || xHost === 'twitter.com') && !currentVideoId) {
+        const tweetId = anchorEl?.dataset?.aleTweetId;
+        if (tweetId) {
+          currentVideoId = tweetId;
+          analyzeUrl     = `https://x.com/i/status/${tweetId}`;
+        }
       }
     }
   }
@@ -143,7 +152,9 @@ function openPanel(anchorEl, { imageUrl = null, trigger = 'cap_click' } = {}) {
   const panel = buildPanel();
   panel.querySelector('#alep-url').textContent = truncateUrl(analyzeUrl);
 
-  const useFixed = imageUrl || (anchorEl === document.body) || !document.body.contains(anchorEl);
+  const useFixed = imageUrl || (anchorEl === document.body) || !document.body.contains(anchorEl)
+    || anchorEl instanceof HTMLMediaElement
+    || anchorEl.tagName?.includes('-'); // custom elements (e.g. shreddit-player)
   if (useFixed) {
     panel.style.position = 'fixed';
     panel.style.zIndex   = '2147483647';
@@ -368,6 +379,42 @@ function injectBottleCap(player) {
   player.appendChild(buildCap());
 }
 
+// Like injectBottleCap but auto-removes via IntersectionObserver when the player
+// scrolls off-screen, then immediately retries so the next visible video gets a cap.
+function injectBottleCapFeed(player) {
+  if (document.getElementById(ALE_CAP_ID)) return;
+  player.style.position = 'relative';
+  const cap = buildCap();
+  player.appendChild(cap);
+  const io = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) { cap.remove(); io.disconnect(); tryInject(); }
+  }, { threshold: 0 });
+  io.observe(player);
+}
+
+// Fixed-position cap for web components (e.g. shreddit-player) where appending
+// a child to the light DOM won't render. Tracks position via rAF, auto-removes
+// via IntersectionObserver, then retries injection.
+function injectFixedCapFeed(el) {
+  if (document.getElementById(ALE_CAP_ID)) return;
+  const cap = buildCap();
+  cap._anchor = el;
+  cap.style.position = 'fixed';
+  cap.style.zIndex   = '2147483647';
+  document.body.appendChild(cap);
+  const io = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) { cap.remove(); io.disconnect(); tryInject(); }
+  }, { threshold: 0 });
+  io.observe(el);
+  ;(function tick() {
+    if (!document.body.contains(cap)) return;
+    const r = el.getBoundingClientRect();
+    cap.style.top   = (r.top  + 10) + 'px';
+    cap.style.right = (window.innerWidth - r.right + 10) + 'px';
+    requestAnimationFrame(tick);
+  })();
+}
+
 // ── Image analysis ────────────────────────────────────────────────────────────
 
 const taggedImages = new WeakSet();
@@ -483,16 +530,6 @@ function tagImages() {
   });
 }
 
-// Walk up from a video element to the nearest ancestor that's large enough to host the cap
-function findVideoContainer(video) {
-  let el = video.parentElement;
-  while (el && el !== document.body) {
-    const { width, height } = el.getBoundingClientRect();
-    if (width >= 200 && height >= 150) return el;
-    el = el.parentElement;
-  }
-  return video.parentElement;
-}
 
 function injectFacebookReel() {
   if (document.getElementById(ALE_CAP_ID)) return;
@@ -536,38 +573,7 @@ function injectLinkedIn() {
   }, 300);
 }
 
-// Inject the bottle cap for X.com feed videos using fixed positioning on document.body.
-// This avoids two failure modes: overflow:hidden on the player container, and React
-// reconciliation removing any child we append to a managed DOM node.
-function injectXVideoCap(video) {
-  if (document.getElementById(ALE_CAP_ID)) return;
 
-  const player = findVideoContainer(video);
-  if (video.poster?.startsWith('https://')) {
-    player.dataset.alePosterUrl = video.poster;
-  }
-
-  const cap = buildCap();
-  cap._anchor = player; // openPanel reads dataset and rect from here
-  cap.style.position = 'fixed';
-  cap.style.zIndex   = '2147483647';
-  document.body.appendChild(cap);
-
-  // Keep the cap pinned to the player's top-right corner via rAF.
-  // Remove (not hide) when off-screen so the MutationObserver can re-inject
-  // on the next visible video as the user scrolls.
-  ;(function tick() {
-    if (!document.body.contains(cap)) return;
-    const r = player.getBoundingClientRect();
-    if (r.width === 0 || r.bottom <= 0 || r.top >= window.innerHeight) {
-      cap.remove();
-      return;
-    }
-    cap.style.top   = (r.top  + 10) + 'px';
-    cap.style.right = (window.innerWidth - r.right + 10) + 'px';
-    requestAnimationFrame(tick);
-  })();
-}
 
 // Walk up from el (up to 30 levels), searching each ancestor's subtree for a /status/<id> link.
 function findTweetIdFromElement(el) {
@@ -586,32 +592,18 @@ function findTweetIdFromElement(el) {
 
 function tryInjectX() {
   if (document.getElementById(ALE_CAP_ID)) return;
-
-  // Try the explicit testid first (works on status pages and some feed renders)
-  const testidPlayers = [...document.querySelectorAll('[data-testid="videoPlayer"]')];
-
-  if (testidPlayers.length) {
-    for (const player of testidPlayers) {
-      if (document.getElementById(ALE_CAP_ID)) break;
-      if (!window.location.pathname.match(/\/status\/(\d+)/)) {
-        const video = player.querySelector('video') || player;
-        const tweetId = findTweetIdFromElement(video);
-        if (tweetId) player.dataset.aleTweetId = tweetId;
-      }
-      injectBottleCap(player);
-    }
-    return;
-  }
-
-  // Fallback: find <video poster> elements — X.com sets poster on feed videos.
-  // Use injectXVideoCap (fixed-position on body) to survive overflow:hidden and React re-renders.
-  for (const video of document.querySelectorAll('video[poster]')) {
+  // video[poster] isn't reliably present at query time; use the testid player
+  // which IS present, and let IntersectionObserver remove it when it scrolls off.
+  for (const player of document.querySelectorAll('[data-testid="videoPlayer"]')) {
     if (document.getElementById(ALE_CAP_ID)) break;
-    const player = findVideoContainer(video);
     const r = player.getBoundingClientRect();
     if (r.width < 100 || r.height < 100) continue;
-    if (r.bottom <= 0 || r.top >= window.innerHeight) continue; // off-screen
-    injectXVideoCap(video);
+    if (r.bottom <= 0 || r.top >= window.innerHeight) continue;
+    if (!window.location.pathname.match(/\/status\/(\d+)/)) {
+      const tweetId = findTweetIdFromElement(player);
+      if (tweetId) player.dataset.aleTweetId = tweetId;
+    }
+    injectBottleCapFeed(player);
   }
 }
 
@@ -633,6 +625,14 @@ function tryInject() {
   } else if (host === 'vimeo.com' || host === 'player.vimeo.com') {
     const player = document.querySelector('.vp-player-layout, #player');
     if (player) injectBottleCap(player);
+  } else if (host === 'www.reddit.com' || host === 'reddit.com') {
+    for (const el of document.querySelectorAll('shreddit-player')) {
+      if (document.getElementById(ALE_CAP_ID)) break;
+      const r = el.getBoundingClientRect();
+      if (r.width < 100 || r.height < 100) continue;
+      if (r.bottom <= 0 || r.top >= window.innerHeight) continue;
+      injectFixedCapFeed(el);
+    }
   } else {
     const video = document.querySelector('video');
     if (video?.parentElement) injectBottleCap(video.parentElement);
@@ -641,6 +641,18 @@ function tryInject() {
 
 tryInject();
 tagImages();
+
+// MutationObserver doesn't fire on scroll, so feed-style sites (Reddit, X.com)
+// need a scroll listener to detect when off-screen videos enter the viewport.
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(() => {
+    if (!document.getElementById(ALE_CAP_ID)) tryInject();
+    scrollTicking = false;
+  });
+}, { passive: true });
 
 const observer = new MutationObserver((mutations) => {
   const newUrl = window.location.href;
