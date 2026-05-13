@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ALE — Authenticity Logic Engine",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Verify if online video content is real or synthetic. Brewed with care.",
   "permissions": [
     "storage",
