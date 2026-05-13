@@ -13,9 +13,19 @@ body {
 .ale-header {
   background: #E8A020;
   padding: 10px 14px;
+  padding-top: 14px;
   display: flex;
   align-items: baseline;
-  padding-top: 14px;
+  gap: 6px;
+}
+
+.ale-version {
+  margin-left: auto;
+  font-size: 9px;
+  font-family: monospace;
+  color: #080E12;
+  opacity: 0.5;
+  align-self: center;
 }
 
 .ale-logo {
