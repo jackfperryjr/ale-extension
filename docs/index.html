@@ -346,6 +346,7 @@
   <div class="nav-links">
     <a href="#how-it-works">How it works</a>
     <a href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://chromewebstore.google.com/detail/kkfaafebgjbcekddnlcfcapfemceekko" target="_blank" rel="noopener">Chrome Web Store</a>
   </div>
 </nav>
 
@@ -362,13 +363,21 @@
     Or <a href="https://brewery.getale.io/try" target="_blank" rel="noopener">try it out for yourself!</a>
   </p>
   <div>
-    <a class="btn-primary" href="https://github.com/jackfperryjr/ale-extension/releases/latest/download/ale-extension.zip">
-      Download Extension
+    <a class="btn-primary ale-install-chrome" href="https://chromewebstore.google.com/detail/kkfaafebgjbcekddnlcfcapfemceekko" target="_blank" rel="noopener">
+      Add to Chrome
+    </a>
+    <!-- TODO: replace EDGE_STORE_URL with the approved Edge Add-ons listing URL -->
+    <a class="btn-primary ale-install-edge" href="EDGE_STORE_URL" target="_blank" rel="noopener" style="display:none">
+      Add to Edge
     </a>
     <a class="btn-secondary" href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">
       View on GitHub
     </a>
   </div>
+  <p style="font-size:11px; color:var(--muted); margin-top:16px; font-style:italic;">
+    By installing you agree to our <a href="tos.html" style="color:var(--muted); text-decoration:underline;">Terms of Service</a>
+    and <a href="privacy.html" style="color:var(--muted); text-decoration:underline;">Privacy Policy</a>.
+  </p>
 
   <div class="demo-pills">
     <div class="pill">
@@ -483,18 +492,40 @@
 <section class="cta-section">
   <h2>Start verifying today</h2>
   <p>Free to install. 3 pours per day. No credit card required.</p>
-  <a class="btn-primary" href="https://github.com/jackfperryjr/ale-extension/releases/latest" target="_blank" rel="noopener">
-    Download Extension
+  <a class="btn-primary ale-install-chrome" href="https://chromewebstore.google.com/detail/kkfaafebgjbcekddnlcfcapfemceekko" target="_blank" rel="noopener">
+    Add to Chrome
+  </a>
+  <a class="btn-primary ale-install-edge" href="https://microsoftedge.microsoft.com/addons/detail/ale/
+fplhdmbfbfadokkehclmeaahadhjbgfm" target="_blank" rel="noopener" style="display:none">
+    Add to Edge
   </a>
 </section>
 
 <footer>
   <span class="foot-logo">ALE</span>
   <div class="foot-links">
+    <a href="https://chromewebstore.google.com/detail/kkfaafebgjbcekddnlcfcapfemceekko" target="_blank" rel="noopener">Chrome Web Store</a>
+    <!-- TODO: replace EDGE_STORE_URL with the approved Edge Add-ons listing URL -->
+    <a href="EDGE_STORE_URL" target="_blank" rel="noopener">Edge Add-ons</a>
     <a href="https://github.com/jackfperryjr/ale-extension" target="_blank" rel="noopener">GitHub</a>
+    <a href="tos.html">Terms of Service</a>
     <a href="privacy.html">Privacy Policy</a>
+    <span style="color:var(--muted);">·</span>
+    <span style="font-style:italic;">Enjoying ALE? Leave us a review on the
+      <a href="https://chromewebstore.google.com/detail/kkfaafebgjbcekddnlcfcapfemceekko" target="_blank" rel="noopener">Chrome Web Store</a>
+      or <a href="https://microsoftedge.microsoft.com/addons/detail/ale/
+fplhdmbfbfadokkehclmeaahadhjbgfm" target="_blank" rel="noopener">Edge Add-ons</a>.
+    </span>
   </div>
 </footer>
 
+<script>
+  (function () {
+    if (/Edg\//.test(navigator.userAgent)) {
+      document.querySelectorAll('.ale-install-chrome').forEach(function (el) { el.style.display = 'none'; });
+      document.querySelectorAll('.ale-install-edge').forEach(function (el) { el.style.display = ''; });
+    }
+  })();
+</script>
 </body>
 </html>
